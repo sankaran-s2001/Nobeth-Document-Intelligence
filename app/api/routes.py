@@ -36,7 +36,7 @@ class ExportRequest(BaseModel):
     style: Literal["professional", "layout"] = "professional"
 
 
-@router.get("/health")
+@router.api_route("/health", methods=["GET", "HEAD"])
 async def health_check():
     return {
         "status": "ok",
