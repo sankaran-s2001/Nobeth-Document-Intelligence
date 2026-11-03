@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nobeth Document Intelligence | Nobeth Analytics</title>
+  <link rel="icon" type="image/png" href="/static/assets/nobeth-analytics.png">
+  <link rel="stylesheet" href="/static/css/app.css">
+</head>
+<body>
+  <!-- TOP BRAND HEADER -->
+  <header class="top-header">
+    <div class="header-inner">
+      <div class="brand-group">
+        <img src="/static/assets/nobeth-analytics.png" alt="Nobeth Analytics" class="brand-logo" id="brandLogo">
+        <div class="brand-titles">
+          <div class="org-name">Nobeth Analytics</div>
+          <h1 class="product-title">Nobeth Document Intelligence</h1>
+          <p class="product-tagline">Transform handwritten documents into accurate, structured, editable files.</p>
+        </div>
+      </div>
+      <div class="header-actions">
+        <div class="status-badge" id="aiStatusBadge">
+          <span class="status-dot"></span>
+          <span id="aiStatusText">AI Ready</span>
+        </div>
+        <button class="btn btn-secondary btn-sm" id="btnOpenSettings" title="System Settings & Diagnostics">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+          System Info
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- API KEY MISSING WARNING BANNER (conditional) -->
+  {% if not gemini_configured %}
+  <div class="warning-banner" id="apiKeyWarning">
+    <div class="banner-inner">
+      <div class="banner-text">
+        <strong>Attention:</strong> Gemini API key is not configured in <code>.env</code>. You can explore the interface and test document ingestion, but live AI transcription requires a valid Google AI Studio key configured as <code>GEMINI_API_KEY</code>.
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- MAIN CONTAINER -->
+  <main class="main-container">
+    
+    <!-- SECTION 1: UPLOAD AND QUEUE -->
+    <section class="workspace-section upload-section" id="uploadSection">
+      <div class="section-header">
+        <h2>Document Ingestion</h2>
+        <p class="section-desc">Upload handwritten notes, receipts, letters, forms, scans, multi-page PDFs, or Word documents with embedded handwriting.</p>
+      </div>
+
+      <!-- Drag & Drop Zone -->
+      <div class="dropzone" id="dropzone">
+        <input type="file" id="fileInput" class="file-input-hidden" multiple accept=".jpg,.jpeg,.png,.pdf,.docx">
+        <div class="dropzone-content">
+          <div class="dropzone-icon">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          </div>
+          <div class="dropzone-title">Drag & drop your documents here</div>
+          <div class="dropzone-subtitle">or <button type="button" class="btn-link" id="btnBrowse">browse files</button> from your computer</div>
+          <div class="dropzone-formats">
+            <span class="fmt-pill">JPG / JPEG</span>
+            <span class="fmt-pill">PNG</span>
+            <span class="fmt-pill">PDF (Up to 50 pages)</span>
+            <span class="fmt-pill">DOCX (Typed & Embedded Images)</span>
+          </div>
+          <div class="dropzone-limit">Maximum upload size: {{ max_upload_mb }} MB per file</div>
+        </div>
+      </div>
+
+      <!-- Processing Queue -->
+      <div class="queue-container" id="queueContainer" style="display: none;">
+        <div class="queue-header">
+          <h3>Document Queue (<span id="queueCount">0</span>)</h3>
+          <button class="btn btn-secondary btn-sm" id="btnClearQueue">Clear List</button>
+        </div>
+        <div class="queue-list" id="queueList"></div>
+      </div>
+    </section>
+
+    <!-- SECTION 2: LIVE PROCESSING STATUS OVERLAY / PANEL -->
+    <section class="workspace-section processing-section" id="processingSection" style="display: none;">
+      <div class="processing-card">
+        <div class="processing-header">
+          <div class="spinner-nobeth"></div>
+          <div>
+            <h3 id="procFileName">Processing Document</h3>
+            <p id="procStageLabel" class="proc-stage">Initializing analysis...</p>
+          </div>
+          <div class="proc-timer" id="procTimer">00:00</div>
+        </div>
+
+        <div class="progress-bar-container">
+          <div class="progress-bar-fill" id="progressBarFill" style="width: 5%;"></div>
+        </div>
+
+        <div class="pipeline-steps" id="pipelineSteps">
+          <div class="step-node" data-step="validating"><span class="step-num">1</span> File Check</div>
+          <div class="step-node" data-step="preprocessing"><span class="step-num">2</span> Image Prep</div>
+          <div class="step-node" data-step="analysing"><span class="step-num">3</span> AI Analysis</div>
+          <div class="step-node" data-step="extracting"><span class="step-num">4</span> Exact Transcription</div>
+          <div class="step-node" data-step="cleaning"><span class="step-num">5</span> Polish &amp; Format</div>
+          <div class="step-node" data-step="validating_result"><span class="step-num">6</span> Quality Check</div>
+          <div class="step-node" data-step="ready"><span class="step-num">7</span> Ready to Review</div>
+        </div>
+
+        <div class="proc-error-actions" id="procErrorActions" style="display: none; margin-top: 20px; padding-top: 14px; border-top: 1px solid var(--border-color); display: flex; gap: 10px;">
+          <button class="btn btn-secondary btn-sm" id="btnProcBack">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+            Back to Document List
+          </button>
+          <button class="btn btn-primary btn-sm" id="btnProcRetry">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+            Retry Document
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 3: RESULT & REVIEW WORKSPACE (SPLIT VIEW) -->
+    <section class="workspace-section result-section" id="resultSection" style="display: none;">
+      
+      <!-- Top Action & Meta Bar -->
+      <div class="result-toolbar">
+        <div class="doc-meta-summary">
+          <button class="btn btn-secondary btn-sm" id="btnBackToUpload" title="Return to your document list">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+            Document List
+          </button>
+          <div class="doc-title-editor" title="Click to edit document title">
+            <input type="text" id="docTitleInput" class="doc-title-input" value="Document Title">
+          </div>
+          <span class="badge badge-type" id="badgeDocType">General Notes</span>
+          <span class="badge badge-lang" id="badgeDocLang">English</span>
+          <span class="badge badge-model" id="badgeModelUsed" title="AI Model used for processing">Gemini 3.5 Flash-Lite</span>
+          <span class="badge badge-uncertainties" id="badgeUncertainties" style="display: none;">0 Uncertain</span>
+          <span class="badge badge-edited" id="badgeEdited" style="display: none;">Edited</span>
+        </div>
+
+        <!-- Export Toolbar -->
+        <div class="export-actions">
+          <div class="dropdown">
+            <button class="btn btn-primary btn-sm dropdown-toggle" id="btnExportMenu" title="Choose a download format for this document">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              Export / Download
+            </button>
+            <div class="dropdown-menu" id="exportDropdownMenu">
+              <div class="dropdown-group-title">MICROSOFT WORD (.DOCX)</div>
+              <button class="dropdown-item" data-format="docx" data-version="cleaned" data-style="professional">
+                <div class="item-title">Word Document (.docx) &mdash; Clean &amp; Polished</div>
+                <div class="item-desc">Spelling corrected, neat formatting &mdash; recommended for sharing</div>
+              </button>
+              <button class="dropdown-item" data-format="docx" data-version="verbatim" data-style="professional">
+                <div class="item-title">Word Document (.docx) &mdash; Exact As Written</div>
+                <div class="item-desc">Word-for-word copy with original handwriting spelling</div>
+              </button>
+              <button class="dropdown-item" data-format="docx" data-version="cleaned" data-style="layout">
+                <div class="item-title">Word Document (.docx) &mdash; Match Paper Layout</div>
+                <div class="item-desc">Cleaned text positioned like the physical handwritten page</div>
+              </button>
+              <button class="dropdown-item" data-format="docx" data-version="verbatim" data-style="layout">
+                <div class="item-title">Word Document (.docx) &mdash; Exact Words, Paper Layout</div>
+                <div class="item-desc">Exact handwritten words arranged in original spatial positions</div>
+              </button>
+
+              <div class="dropdown-divider"></div>
+              <div class="dropdown-group-title">PRINT-READY PDF (.PDF)</div>
+              <button class="dropdown-item" data-format="pdf" data-version="cleaned" data-style="professional">
+                <div class="item-title">PDF Document (.pdf) &mdash; Clean &amp; Polished</div>
+                <div class="item-desc">Print-ready document (supports English, Hindi, and Tamil)</div>
+              </button>
+              <button class="dropdown-item" data-format="pdf" data-version="verbatim" data-style="professional">
+                <div class="item-title">PDF Document (.pdf) &mdash; Exact As Written</div>
+                <div class="item-desc">Exact original words in print-ready PDF format</div>
+              </button>
+
+              <div class="dropdown-divider"></div>
+              <div class="dropdown-group-title">SIMPLE TEXT &amp; DATA</div>
+              <button class="dropdown-item" data-format="txt" data-version="cleaned">
+                <div class="item-title">Plain Text (.txt) &mdash; Clean &amp; Polished</div>
+                <div class="item-desc">Simple text without formatting, easy to copy &amp; paste</div>
+              </button>
+              <button class="dropdown-item" data-format="txt" data-version="verbatim">
+                <div class="item-title">Plain Text (.txt) &mdash; Exact As Written</div>
+                <div class="item-desc">Raw word-for-word text file</div>
+              </button>
+              <button class="dropdown-item" data-format="json">
+                <div class="item-title">Developer Data (.json)</div>
+                <div class="item-desc">Technical format containing word coordinates and AI confidence scores</div>
+              </button>
+            </div>
+          </div>
+          <button class="btn btn-secondary btn-sm" id="btnPrint" title="Print document or save to PDF">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+            Print
+          </button>
+        </div>
+      </div>
+
+      <!-- Split Layout: Original on Left, Extracted Document on Right -->
+      <div class="split-workspace">
+        
+        <!-- LEFT PANEL: ORIGINAL SOURCE VIEWER -->
+        <div class="panel panel-source">
+          <div class="panel-header">
+            <div class="panel-title">Original Source Document</div>
+            <div class="source-nav">
+              <button class="btn-icon" id="btnPrevPage" title="Previous page">&lt;</button>
+              <span class="page-indicator" id="pageIndicator">Page 1 of 1</span>
+              <button class="btn-icon" id="btnNextPage" title="Next page">&gt;</button>
+              <div class="zoom-controls">
+                <button class="btn-icon" id="btnZoomOut" title="Zoom Out">-</button>
+                <span class="zoom-level" id="zoomLevel">100%</span>
+                <button class="btn-icon" id="btnZoomIn" title="Zoom In">+</button>
+                <button class="btn-icon" id="btnZoomReset" title="Reset Zoom">Fit</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="source-viewer-viewport" id="sourceViewport">
+            <div class="source-canvas-wrapper" id="sourceCanvasWrapper">
+              <img id="sourceImage" src="" alt="Original Document Preview" class="source-img">
+              <div class="bbox-overlay" id="bboxOverlay"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- RIGHT PANEL: EXTRACTED DOCUMENT & EDITOR -->
+        <div class="panel panel-editor">
+          <div class="panel-header editor-header">
+            <!-- Version Switcher Tabs: Clean & Polished vs Exact Words -->
+            <div class="version-tabs" role="tablist">
+              <button class="tab-btn active" id="tabCleaned" data-version="cleaned" title="Clean &amp; Polished: Corrects spelling and formats headings, lists, and tables neatly. Preserves all original facts, dates, and amounts.">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="margin-right: 4px; vertical-align: -2px;"><path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3Z"/></svg>
+                Clean &amp; Polished
+              </button>
+              <button class="tab-btn" id="tabVerbatim" data-version="verbatim" title="Exact As Written: Word-for-word copy preserving original handwriting spelling, typos, shorthand, and punctuation.">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="margin-right: 4px; vertical-align: -2px;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                Exact As Written
+              </button>
+            </div>
+
+            <!-- Presentation Style Switcher -->
+            <div class="style-switcher">
+              <span class="style-label">View Style:</span>
+              <button class="btn-toggle active" id="btnStyleProfessional" data-style="professional" title="Standard Flow: Normal document layout with neat headings, clean paragraphs, and standard margins. Best for reading and printing.">
+                Standard Flow
+              </button>
+              <button class="btn-toggle" id="btnStyleLayout" data-style="layout" title="Match Paper Layout: Arranges text blocks to reflect where they appeared physically on the handwritten page.">
+                Match Paper Layout
+              </button>
+            </div>
+
+            <!-- Editor Action Buttons -->
+            <div class="editor-actions">
+              <button class="btn btn-secondary btn-sm" id="btnRestoreOriginal" title="Reset to Original AI: Discard your manual typing edits and restore the initial AI transcription.">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 3px; vertical-align: -2px;"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><polyline points="3 3 3 8 8 8"/></svg>
+                Reset to Original AI
+              </button>
+              <button class="btn btn-secondary btn-sm" id="btnRegenerateCleaned" title="Re-polish with My Edits: Have AI re-apply spelling corrections and formatting using your edited text.">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 3px; vertical-align: -2px;"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+                Re-polish with My Edits
+              </button>
+              <button class="btn btn-primary btn-sm" id="btnSaveEdits" disabled title="Save Changes: Save your manual typing corrections permanently to this document.">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 3px; vertical-align: -2px;"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+                Save Changes
+              </button>
+            </div>
+          </div>
+
+          <!-- Non-Technical Context Explanation Bar -->
+          <div class="view-helper-bar" id="viewHelperBar">
+            <div class="helper-content">
+              <span class="helper-dot"></span>
+              <span class="helper-text" id="viewHelperText">
+                <strong>Clean &amp; Polished (Standard Flow):</strong> Showing document with spelling corrected, neat lists, and clean tables in standard reading flow.
+              </span>
+            </div>
+          </div>
+
+          <!-- Uncertainty & Review Banner (shows when uncertainties exist) -->
+          <div class="uncertainty-review-bar" id="uncertaintyBar" style="display: none;">
+            <div class="unc-icon">&#9888;</div>
+            <div class="unc-msg" id="uncMessage">3 uncertain handwriting sections detected. Highlighted below for your review.</div>
+          </div>
+
+          <!-- Document Render / Edit Canvas -->
+          <div class="editor-content-viewport" id="editorViewport">
+            <div class="document-page-canvas mode-professional" id="documentCanvas">
+              <!-- Content blocks are dynamically rendered here -->
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- SYSTEM SETTINGS MODAL -->
+  <div class="modal-backdrop" id="settingsModal" style="display: none;">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>System Configuration & Diagnostics</h3>
+        <button class="modal-close" id="btnCloseSettingsModal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="settings-grid">
+          <div class="setting-item">
+            <label>Product</label>
+            <div>Nobeth Document Intelligence</div>
+          </div>
+          <div class="setting-item">
+            <label>Organization</label>
+            <div>Nobeth Analytics</div>
+          </div>
+          <div class="setting-item">
+            <label>Primary AI Model</label>
+            <div class="mono-val">{{ primary_model }}</div>
+          </div>
+          <div class="setting-item">
+            <label>Fallback AI Model</label>
+            <div class="mono-val">{{ fallback_model }}</div>
+          </div>
+          <div class="setting-item">
+            <label>Gemini API Status</label>
+            <div id="settingsApiStatus">{% if gemini_configured %}<span class="text-success">Connected</span>{% else %}<span class="text-danger">Key Missing in .env</span>{% endif %}</div>
+          </div>
+          <div class="setting-item">
+            <label>Max Upload Size</label>
+            <div>{{ max_upload_mb }} MB</div>
+          </div>
+          <div class="setting-item">
+            <label>Max PDF Pages</label>
+            <div>{{ max_pdf_pages }} Pages</div>
+          </div>
+          <div class="setting-item">
+            <label>Data Retention Policy</label>
+            <div>{{ retention_hours }} Hours (Local Cleanup)</div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" id="btnCloseSettingsBtn">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOAST NOTIFICATION CONTAINER -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- APPLICATION SCRIPTS -->
+  <script src="/static/js/app.js"></script>
+</body>
+</html>
+

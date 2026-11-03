@@ -1,0 +1,8 @@
+FONT ASSET NOTICE:
+-----------------
+The application bundles Nirmala UI TrueType font files (NirmalaUI-Regular.ttf, NirmalaUI-Bold.ttf)
+derived for complete complex-script Unicode rendering across Latin, Devanagari (Hindi),
+Tamil, and other Indic scripts.
+These fonts are utilized by the Nobeth Document Intelligence PDF generation engine
+in conjunction with fpdf2 and HarfBuzz complex-script shaping.
+
