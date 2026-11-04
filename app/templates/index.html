@@ -214,7 +214,7 @@
               <button class="btn-icon" id="btnNextPage" title="Next page">&gt;</button>
               <div class="zoom-controls">
                 <button class="btn-icon" id="btnZoomOut" title="Zoom Out">-</button>
-                <span class="zoom-level" id="zoomLevel">100%</span>
+                <span class="zoom-level" id="zoomLevel">75%</span>
                 <button class="btn-icon" id="btnZoomIn" title="Zoom In">+</button>
                 <button class="btn-icon" id="btnZoomReset" title="Reset Zoom">Fit</button>
               </div>
@@ -232,43 +232,48 @@
         <!-- RIGHT PANEL: EXTRACTED DOCUMENT & EDITOR -->
         <div class="panel panel-editor">
           <div class="panel-header editor-header">
-            <!-- Version Switcher Tabs: Clean & Polished vs Exact Words -->
-            <div class="version-tabs" role="tablist">
-              <button class="tab-btn active" id="tabCleaned" data-version="cleaned" title="Clean &amp; Polished: Corrects spelling and formats headings, lists, and tables neatly. Preserves all original facts, dates, and amounts.">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="margin-right: 4px; vertical-align: -2px;"><path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3Z"/></svg>
-                Clean &amp; Polished
-              </button>
-              <button class="tab-btn" id="tabVerbatim" data-version="verbatim" title="Exact As Written: Word-for-word copy preserving original handwriting spelling, typos, shorthand, and punctuation.">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="margin-right: 4px; vertical-align: -2px;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-                Exact As Written
-              </button>
+            <!-- ROW 1: DOCUMENT PRESENTATION CONTROLS -->
+            <div class="editor-toolbar-row editor-toolbar-row-top">
+              <!-- Version Switcher Tabs: Clean & Polished vs Exact Words -->
+              <div class="version-tabs" role="tablist">
+                <button class="tab-btn active" id="tabCleaned" data-version="cleaned" title="Clean &amp; Polished: Corrects spelling and formats headings, lists, and tables neatly. Preserves all original facts, dates, and amounts.">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="margin-right: 4px; vertical-align: -2px;"><path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3Z"/></svg>
+                  Clean &amp; Polished
+                </button>
+                <button class="tab-btn" id="tabVerbatim" data-version="verbatim" title="Exact As Written: Word-for-word copy preserving original handwriting spelling, typos, shorthand, and punctuation.">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="margin-right: 4px; vertical-align: -2px;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                  Exact As Written
+                </button>
+              </div>
+
+              <!-- Presentation Style Switcher -->
+              <div class="style-switcher">
+                <span class="style-label">View Style:</span>
+                <button class="btn-toggle active" id="btnStyleProfessional" data-style="professional" title="Standard Flow: Normal document layout with neat headings, clean paragraphs, and standard margins. Best for reading and printing.">
+                  Standard Flow
+                </button>
+                <button class="btn-toggle" id="btnStyleLayout" data-style="layout" title="Match Paper Layout: Arranges text blocks to reflect where they appeared physically on the handwritten page.">
+                  Match Paper Layout
+                </button>
+              </div>
             </div>
 
-            <!-- Presentation Style Switcher -->
-            <div class="style-switcher">
-              <span class="style-label">View Style:</span>
-              <button class="btn-toggle active" id="btnStyleProfessional" data-style="professional" title="Standard Flow: Normal document layout with neat headings, clean paragraphs, and standard margins. Best for reading and printing.">
-                Standard Flow
-              </button>
-              <button class="btn-toggle" id="btnStyleLayout" data-style="layout" title="Match Paper Layout: Arranges text blocks to reflect where they appeared physically on the handwritten page.">
-                Match Paper Layout
-              </button>
-            </div>
-
-            <!-- Editor Action Buttons -->
-            <div class="editor-actions">
-              <button class="btn btn-secondary btn-sm" id="btnRestoreOriginal" title="Reset to Original AI: Discard your manual typing edits and restore the initial AI transcription.">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 3px; vertical-align: -2px;"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><polyline points="3 3 3 8 8 8"/></svg>
-                Reset to Original AI
-              </button>
-              <button class="btn btn-secondary btn-sm" id="btnRegenerateCleaned" title="Re-polish with My Edits: Have AI re-apply spelling corrections and formatting using your edited text.">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 3px; vertical-align: -2px;"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
-                Re-polish with My Edits
-              </button>
-              <button class="btn btn-primary btn-sm" id="btnSaveEdits" disabled title="Save Changes: Save your manual typing corrections permanently to this document.">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 3px; vertical-align: -2px;"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
-                Save Changes
-              </button>
+            <!-- ROW 2: DOCUMENT ACTION CONTROLS -->
+            <div class="editor-toolbar-row editor-toolbar-row-bottom">
+              <div class="editor-actions">
+                <button class="btn btn-secondary btn-sm" id="btnRestoreOriginal" title="Reset to Original AI: Discard your manual typing edits and restore the initial AI transcription.">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 3px; vertical-align: -2px;"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><polyline points="3 3 3 8 8 8"/></svg>
+                  Reset to Original AI
+                </button>
+                <button class="btn btn-secondary btn-sm" id="btnRegenerateCleaned" title="Re-polish with My Edits: Have AI re-apply spelling corrections and formatting using your edited text.">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 3px; vertical-align: -2px;"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+                  Re-polish with My Edits
+                </button>
+                <button class="btn btn-primary btn-sm" id="btnSaveEdits" disabled title="Save Changes: Save your manual typing corrections permanently to this document.">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 3px; vertical-align: -2px;"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+                  Save Changes
+                </button>
+              </div>
             </div>
           </div>
 

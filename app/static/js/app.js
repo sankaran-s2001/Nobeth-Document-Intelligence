@@ -13,7 +13,7 @@ document.addEventListener("DOMContentLoaded", () => {
     currentPageNumber: 1,
     currentVersion: "cleaned", // "verbatim" | "cleaned"
     currentStyle: "professional", // "professional" | "layout"
-    zoomScale: 1.0,
+    zoomScale: 0.75,
     hasUnsavedChanges: false,
     dirtyBlocks: new Map(), // blockId -> { verbatim_text, cleaned_text }
     activeTimerInterval: null,
@@ -392,6 +392,8 @@ document.addEventListener("DOMContentLoaded", () => {
       const masterDoc = await res.json();
       state.currentResult = masterDoc;
       state.currentPageNumber = 1;
+      state.zoomScale = 0.75;
+      applyZoom();
       state.dirtyBlocks.clear();
       state.hasUnsavedChanges = false;
       btnSaveEdits.disabled = true;
@@ -911,6 +913,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // Initial load
+  applyZoom();
   loadQueue();
 });
 
