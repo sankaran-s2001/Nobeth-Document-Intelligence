@@ -43,7 +43,6 @@ document.addEventListener("DOMContentLoaded", () => {
   const docTitleInput = document.getElementById("docTitleInput");
   const badgeDocType = document.getElementById("badgeDocType");
   const badgeDocLang = document.getElementById("badgeDocLang");
-  const badgeModelUsed = document.getElementById("badgeModelUsed");
   const badgeUncertainties = document.getElementById("badgeUncertainties");
   const badgeEdited = document.getElementById("badgeEdited");
 
@@ -409,10 +408,6 @@ document.addEventListener("DOMContentLoaded", () => {
       badgeDocLang.textContent = (masterDoc.languages && masterDoc.languages.length > 0)
         ? masterDoc.languages.map((l) => l.name).join(", ")
         : "English";
-
-      const proc = masterDoc.processing || {};
-      const modelName = proc.extraction_model || "Gemini 3.5 Flash-Lite";
-      badgeModelUsed.textContent = proc.fallback_used ? `${modelName} (Fallback)` : modelName;
 
       // Uncertainties count
       let uncCount = 0;
