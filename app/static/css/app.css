@@ -769,6 +769,10 @@ body {
   border-color: rgba(99, 102, 241, 0.3);
 }
 
+.badge-model {
+  display: none !important;
+}
+
 .badge-uncertainties {
   background: rgba(245, 158, 11, 0.15);
   color: #FCD34D;

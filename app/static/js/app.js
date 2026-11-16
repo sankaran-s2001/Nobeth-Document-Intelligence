@@ -43,6 +43,8 @@ document.addEventListener("DOMContentLoaded", () => {
   const docTitleInput = document.getElementById("docTitleInput");
   const badgeDocType = document.getElementById("badgeDocType");
   const badgeDocLang = document.getElementById("badgeDocLang");
+  const badgeModelUsed = document.getElementById("badgeModelUsed");
+  if (badgeModelUsed) badgeModelUsed.style.display = "none";
   const badgeUncertainties = document.getElementById("badgeUncertainties");
   const badgeEdited = document.getElementById("badgeEdited");
 
@@ -408,6 +410,10 @@ document.addEventListener("DOMContentLoaded", () => {
       badgeDocLang.textContent = (masterDoc.languages && masterDoc.languages.length > 0)
         ? masterDoc.languages.map((l) => l.name).join(", ")
         : "English";
+
+      if (badgeModelUsed) {
+        badgeModelUsed.style.display = "none";
+      }
 
       // Uncertainties count
       let uncCount = 0;
